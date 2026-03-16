@@ -8,10 +8,10 @@
 
 # PU, n, FP 
 #Você encontra os dados na placa do motor. PU está em Kw, n está em rend. FP está em F.P
-#Motor 1: PU = 750 W, n = 83.0, FP = 0.82
-#Motor 2: PU = 7500 W, n = 91.0, FP = 0.82
+#Motor 1: PU = 750 W, n = 0.83, FP = 0.82
+#Motor 2: PU = 7500 W, n = 0.91, FP = 0.82
 #Motor 3: PU = 1260 W, n = 0.85, FP = 0.89
-#Motor 4: PU = 30000 W, n = 95.8, FP = 0.89
+#Motor 4: PU = 30000 W, n = 0.958, FP = 0.89
 
 #Entrada de dados 
 PU = int(input ("Insira a potência útil do motor: "))
