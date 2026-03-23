@@ -30,7 +30,7 @@ while True:
     # **0.5 ---> extrai a raiz quadrada do resultado
     Q = (S**2 - P**2)**0.5
 
-    print(f"A potência útil do motor é: {int(P)} W")
+    print(f"A potência ativa do motor é: {int(P)} W")
     print(f"A potência aparente do motor é: {int(S)} VA")
     print(f"A potência reativa do motor é: {int(Q)} VAr")
 
