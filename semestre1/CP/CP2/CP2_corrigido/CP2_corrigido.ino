@@ -31,7 +31,7 @@
     // ex5();
   }
 
-  void ex1() {
+  void ex1() { 
     print_medidor();
     if (tensao_36V1 > tensao_36V2){
       digitalWrite(LED_GREEN, LOW);
@@ -47,7 +47,7 @@
       }
   }
 
-  void ex2() {
+  /*void ex2() { //Original do CP
     medidor();
     if(tensao_36V1 < 10){
       Serial.print("FALHA S1: ");
@@ -81,9 +81,45 @@
       digitalWrite(LED_RED, LOW);
       digitalWrite(LED_GREEN, HIGH);
     }
-  }
+  }*/
 
-  void ex3() {
+  void ex2(){ //Corrigido 
+    if(tensao_36V1 < 10 || tensao_36V2 < 10){
+      if (tensao_36V1 < 10) {
+      Serial.print("FALHA S1: ");
+      Serial.println(tensao_36V1);
+    }
+    if (tensao_36V2 < 10) {
+      Serial.print("FALHA S2: ");
+      Serial.println(tensao_36V2);
+    }
+    digitalWrite(LED_GREEN, LOW);
+    digitalWrite(LED_YELLOW, LOW);
+    digitalWrite(LED_RED, HIGH);
+  }
+  else if (tensao_36V1 < 20 || tensao_36V2 < 20) {
+    if (tensao_36V1 < 20) {
+      Serial.print("ATENCAO S1: ");
+      Serial.println(tensao_36V1);
+    }
+    if (tensao_36V2 < 20) {
+      Serial.print("ATENCAO S2: ");
+      Serial.println(tensao_36V2);
+    }
+    digitalWrite(LED_RED, LOW);
+    digitalWrite(LED_GREEN, LOW);
+    digitalWrite(LED_YELLOW, HIGH);
+  }
+  else {
+    Serial.println("Sistema OK");
+    digitalWrite(LED_YELLOW, LOW);
+    digitalWrite(LED_RED, LOW);
+    digitalWrite(LED_GREEN, HIGH);
+    }
+  }
+  
+
+  /*void ex3() {
     medidor();
     P1 = tensao_36V1 * A;
     P2 = tensao_36V2 * A;
@@ -116,9 +152,60 @@
     }
     Serial.println(ef);
     delay(1000);
+  }*/
+
+  void ex3(){ //Corrigido 
+    medidor();
+    P1 = tensao_36V1 * A;
+    P2 = tensao_36V2 * A;
+    float menor = min(P1, P2);
+    float maior = max(P1, P2);
+
+    float ef = 0;
+    if (maior > 0) {
+       ef = (menor / maior) * 100;
+    }
+
+      Serial.print("P1: ");
+      Serial.print(P1);
+      Serial.println("W");
+
+      Serial.print("P2: ");
+      Serial.print(P2);
+      Serial.println("W");
+
+      Serial.print("Total: ");
+      Serial.print(P1 + P2);
+      Serial.println("W");
+
+      Serial.print("Eficiencia: ");
+      Serial.print(ef);
+      Serial.println("%");
+
+      if (ef >= 90) {
+        digitalWrite(LED_YELLOW, LOW);
+        digitalWrite(LED_RED, LOW);
+        digitalWrite(LED_GREEN, HIGH);
+        Serial.println("SISTEMA OK");
+      }
+      else if (ef > 70 && ef < 90) {
+        digitalWrite(LED_RED, LOW);
+        digitalWrite(LED_GREEN, LOW);
+        digitalWrite(LED_YELLOW, HIGH);
+        Serial.println("ATENCAO! EFICIENCIA ABAIXO DO ESPERADO");
+      }
+      else {
+        digitalWrite(LED_YELLOW, LOW);
+        digitalWrite(LED_GREEN, LOW);
+        digitalWrite(LED_RED, HIGH);
+        Serial.println("DESBALANCEAMENTO CRITICO");
+      }
+
+      delay(1000);
+     }
   }
 
-  void ex4() {
+  /*void ex4() { //Original do CP
     medidor();
     if (tensao_36V1 < 15 || tensao_36V2 < 15){
         if (tensao_36V1 < tensao_36V2){
@@ -171,9 +258,48 @@
       digitalWrite(LED_GREEN, HIGH);
     }
     
-  }
+  }*/
 
-  void ex5() {
+  int estado_s1 = -1;
+  int estado_s2 = -1;
+
+  void ex4() { //Corrigido
+    medidor();
+    String nomes[] = {"Critico", "Alerta", "Normal"};
+    int novo_s1 = (tensao_36V1 < 15) ? 0 : (tensao_36V1 < 25) ? 1 : 2;
+    int novo_s2 = (tensao_36V2 < 15) ? 0 : (tensao_36V2 < 25) ? 1 : 2;
+
+    if (novo_s1 != estado_s1 && estado_s1 != -1) {
+      Serial.print("S1: "); Serial.print(nomes[estado_s1]);
+      Serial.print(" -> "); Serial.print(nomes[novo_s1]);
+      Serial.print(" ("); Serial.print(tensao_36V1); Serial.println("V)");
+    }
+    if (novo_s2 != estado_s2 && estado_s2 != -1) {
+      Serial.print("S2: "); Serial.print(nomes[estado_s2]);
+      Serial.print(" -> "); Serial.print(nomes[novo_s2]);
+      Serial.print(" ("); Serial.print(tensao_36V2); Serial.println("V)");
+    }
+
+    String label_s1[] = {"CRITICO", "ALERTA", "NORMAL"};
+    String label_s2[] = {"CRITICO", "ALERTA", "NORMAL"};
+    Serial.print("S1: "); Serial.print(label_s1[novo_s1]);
+    Serial.print(" | S2: "); Serial.println(label_s2[novo_s2]);
+
+    int estado_grave = min(novo_s1, novo_s2);
+    if (estado_grave == 0) {
+      digitalWrite(LED_GREEN, LOW); digitalWrite(LED_YELLOW, LOW); digitalWrite(LED_RED, HIGH);
+    } else if (estado_grave == 1) {
+      digitalWrite(LED_GREEN, LOW); digitalWrite(LED_RED, LOW); digitalWrite(LED_YELLOW, HIGH);
+    } else {
+      digitalWrite(LED_YELLOW, LOW); digitalWrite(LED_RED, LOW); digitalWrite(LED_GREEN, HIGH);
+    }
+
+    estado_s1 = novo_s1;
+    estado_s2 = novo_s2;
+  }
+    
+
+  /*void ex5() { //Original do CP
     medidor();
     int estado_anterior = estado;
     float Vm = (tensao_36V1 + tensao_36V2)/2;
@@ -247,6 +373,52 @@
         Serial.println("V");
       }
     }
+  }*/
+
+  int estado = -1; // era 0
+
+  void ex5() {
+    medidor();
+    int estado_anterior = estado;
+    float Vm = (tensao_36V1 + tensao_36V2) / 2;
+
+    int novo_estado;
+    if (estado_anterior == 0) {
+      if (Vm < 22) novo_estado = 0;
+      else if (Vm < 30) novo_estado = 1;
+      else novo_estado = 2;
+    } else {
+      if (Vm < 20) novo_estado = 0;
+      else if (Vm < 30) novo_estado = 1;
+      else novo_estado = 2;
+    }
+    estado = (estado_anterior == -1) ? novo_estado : estado;
+    // primeiro ciclo: só inicializa, não registra transição
+    if (estado_anterior == -1) { estado = novo_estado; return; }
+    estado = novo_estado;
+
+    // transição ANTES do estado atual
+    if (estado != estado_anterior) {
+      String trans[] = {"OFF","Standby","ON"};
+      Serial.print("Transicao: "); Serial.print(trans[estado_anterior]);
+      Serial.print(" -> "); Serial.print(trans[estado]);
+      Serial.print(" | "); Serial.print(Vm); Serial.println("V");
+    }
+
+    switch (estado) {
+      case 0:
+        Serial.print("Carga: OFF | "); Serial.print(Vm); Serial.println("V");
+        digitalWrite(LED_GREEN, LOW); digitalWrite(LED_YELLOW, LOW); digitalWrite(LED_RED, HIGH);
+        break;
+      case 1:
+        Serial.print("Standby | "); Serial.print(Vm); Serial.println("V");
+        digitalWrite(LED_RED, LOW); digitalWrite(LED_GREEN, LOW); digitalWrite(LED_YELLOW, HIGH);
+        break;
+      case 2:
+        Serial.print("Carga: ON | "); Serial.print(Vm); Serial.println("V");
+        digitalWrite(LED_RED, LOW); digitalWrite(LED_YELLOW, LOW); digitalWrite(LED_GREEN, HIGH);
+        break;
+    }
   }
 
   void medidor(){
@@ -267,8 +439,3 @@
     Serial.print(tensao_36V2);
     Serial.println("V");
   }
-
-
-
-
-
